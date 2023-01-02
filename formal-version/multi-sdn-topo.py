@@ -195,6 +195,12 @@ if __name__ == "__main__":
     # info(pprint.pformat(controllers, indent=4) + '\n')
     # info(pprint.pformat(switches, indent=4) + '\n')
     # info(pprint.pformat(hosts, indent=4) + '\n')
+    
+    # MAJ
+    my_script = "mn_startup_server.sh"
+    CLI(net, script=my_script) 
+    # END MAJ    
+    
     cli = CLI(net)
     cli.do_sh('uam_h0 echo hello')
 
