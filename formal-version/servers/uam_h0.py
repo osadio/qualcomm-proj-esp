@@ -18,6 +18,12 @@ LISTEN_PORT = 9001 if TEST_MODE else 8080
 LOCK = threading.Lock()
 
 
+def log(text):
+    with open("logs/uam.txt", "a") as f:
+        f.write(str(text) + "\n")
+        
+        
+
 class UAMConnection(object):
     "An object of simple HTTP/2 connection"
 
@@ -33,6 +39,8 @@ class UAMConnection(object):
         self.rx_scenario = False
         self.stream_id = False
         self.res_rxts = False  # rx-timestamp from data network
+        
+
 
     def run_forever(self):
         self.conn.initiate_connection()
@@ -100,11 +108,11 @@ class UAMConnection(object):
         resp = send_conn.get_response()
         if resp:
             self.lock.acquire()
-            print('Sent control plane packet to NFV {} Service at {}'.format(scenario, ip[scenario]))
-            print('CP FW Header: {}'.format(send_headers))
-            print('Response: {}'.format(resp.read()))
-            print('==========CP-FW')
-            self.lock.release()
+            log('Sent control plane packet to NFV {} Service at {}'.format(scenario, ip[scenario]))
+            log('CP FW Header: {}'.format(send_headers))
+            log('Response: {}'.format(resp.read()))
+            log('==========CP-FW')
+            self.lock.release()                
 
     def foward_data_plane_packet(self):
         "Duplicate a data plane packet and send to UPF"
@@ -120,18 +128,19 @@ class UAMConnection(object):
         resp = send_conn.get_response()
         if resp:
             self.lock.acquire()
-            print('Fowarded User Plane packet to UPF')
-            print('UP FW Header: {}'.format(fw_headers))
-            print('UP FW Body: {}'.format(self.rx_body))
+            log('Fowarded User Plane packet to UPF')
+            log('UP FW Header: {}'.format(fw_headers))
+            log('UP FW Body: {}'.format(self.rx_body))
             self.res_body = resp.read()
-            print('Response: {}'.format(self.res_body))
+            log('Response: {}'.format(self.res_body))
             self.res_rxts = resp.headers['rx-timestamp'][0]
-            print('==========UP-FW')
+            log('==========UP-FW')
             self.lock.release()
 
 
-print('UAM server started at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.1.1', LISTEN_PORT))
-print('Packets will foward to {}'.format('test server' if TEST_MODE else 'NFVSM'))
+
+log('UAM server started at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.1.1', LISTEN_PORT))
+log('Packets will foward to {}'.format('test server' if TEST_MODE else 'NFVSM'))
 
 sock = socket.socket()
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

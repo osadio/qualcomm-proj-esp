@@ -16,6 +16,11 @@ LISTEN_PORT = 9002 if TEST_MODE else 8080
 SEND_PORT = 9003 if TEST_MODE else 8080
 
 
+def log(text):
+    with open("logs/UPF.txt", "a") as f:
+        f.write(str(text) + "\n")
+
+
 class UPF(object):
     "An object of simple HTTP/2 connection"
 
@@ -54,10 +59,10 @@ class UPF(object):
                 if isinstance(event, RequestReceived):
                     self.rx_headers = event.headers
                     self.stream_id = event.stream_id
-                    print(dict(self.rx_headers))
+                    log(dict(self.rx_headers))
                 elif isinstance(event, DataReceived):
                     self.rx_body = event.data
-                    print(self.rx_body)
+                    log(self.rx_body)
 
             # Check if packet is from UP or CP and do the right thing
             if self.rx_headers and self.rx_body:
@@ -73,7 +78,7 @@ class UPF(object):
                     #         break
                     self.foward_request()
                     self.send_response()
-                print('----------')
+                log('----------')
 
             data_to_send = self.conn.data_to_send()
             if data_to_send:
@@ -82,10 +87,10 @@ class UPF(object):
     def buffer_control_plane_pkt(self):
         pkt_id = str(dict(self.rx_headers)['id'])
         body_json = json.loads(self.rx_body)
-        print('RESULT DICT: {}'.format(body_json['RESULT']))
+        log('RESULT DICT: {}'.format(body_json['RESULT']))
         # check if all result is true
         result = all(x for x in body_json['RESULT'].values())
-        print('RESULT: {}'.format(result))
+        log('RESULT: {}'.format(result))
         pkt_buffer = {
             'id': pkt_id,
             'RESULT': result
@@ -145,13 +150,13 @@ class UPF(object):
         send_conn.request('POST', '/', headers=dict(self.rx_headers), body=self.rx_body)
         resp = send_conn.get_response()
         if resp:
-            print('Fowarded this request to DN and got response')
+            log('Fowarded this request to DN and got response')
             self.res_body = resp.read()
             self.res_rxts = resp.headers['rx-timestamp'][0]
 
 
-print('Data Plane UPF server started at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.4.1', LISTEN_PORT))
-print('Packets will foward to http://{}:{}'.format('localhost' if TEST_MODE else '10.0.5.1', SEND_PORT))
+log('Data Plane UPF server started at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.4.1', LISTEN_PORT))
+log('Packets will foward to http://{}:{}'.format('localhost' if TEST_MODE else '10.0.5.1', SEND_PORT))
 
 sock = socket.socket()
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

@@ -17,6 +17,11 @@ LISTEN_PORT = 9011 if TEST_MODE else 8080
 LOCK = threading.Lock()
 
 
+def log(text):
+    with open("logs/SMF.txt", "a") as f:
+        f.write(str(text) + "\n")
+
+
 class SBASMFConnection(object):
     "An object of simple HTTP/2 connection"
 
@@ -60,7 +65,7 @@ class SBASMFConnection(object):
                 if self.fw_body != {}:
                     self.foward_request()
                 else:
-                    print('Fowarding Failed.')
+                    log('Fowarding Failed.')
 
             data_to_send = self.conn.data_to_send()
             if data_to_send:
@@ -69,7 +74,7 @@ class SBASMFConnection(object):
     def resource_providing(self):
         # Parsing Request Body
         body_json = json.loads(self.rx_body)
-        print(body_json)
+        log(body_json)
         self.rx_config = str(body_json['MODE']['SMF'])
         self.fw_body = {
             'RESULT': body_json['RESULT']
@@ -79,10 +84,10 @@ class SBASMFConnection(object):
         self.fw_body.setdefault('RESULT', {})
         self.fw_body['RESULT']['SMF'] = True  # Always gives True for testing
         self.lock.acquire()
-        print('Recieved Packet.\nMode: {}'.format(self.rx_config))
-        print('RX Header: {}'.format(self.rx_headers))
-        print('RX Body: {}'.format(body_json))
-        print('==========RX')
+        log('Recieved Packet.\nMode: {}'.format(self.rx_config))
+        log('RX Header: {}'.format(self.rx_headers))
+        log('RX Body: {}'.format(body_json))
+        log('==========RX')
         self.lock.release()
 
     def send_response(self):
@@ -115,16 +120,16 @@ class SBASMFConnection(object):
         resp = send_conn.get_response()
         if resp:
             self.lock.acquire()
-            print('Fowarded packet to UPF at http://{}'.format(fw_table))
+            log('Fowarded packet to UPF at http://{}'.format(fw_table))
             self.res_body = resp.read()
-            print('FW Header: {}'.format(dict(self.rx_headers)))
-            print('FW Body: {}'.format(fw_body))
-            print('Response: {}'.format(self.res_body))
-            print('==========FW')
+            log('FW Header: {}'.format(dict(self.rx_headers)))
+            log('FW Body: {}'.format(fw_body))
+            log('Response: {}'.format(self.res_body))
+            log('==========FW')
             self.lock.release()
 
 
-print('SBA Entity SMF server started at http://{}:{}'.format(
+log('SBA Entity SMF server started at http://{}:{}'.format(
     '0.0.0.0' if TEST_MODE else '10.0.3.5', LISTEN_PORT))
 
 sock = socket.socket()

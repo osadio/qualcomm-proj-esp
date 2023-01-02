@@ -17,6 +17,11 @@ LISTEN_PORT = 9007 if TEST_MODE else 8080
 LOCK = threading.Lock()
 
 
+def log(text):
+    with open("logs/NRF.txt", "a") as f:
+        f.write(str(text) + "\n")
+
+
 class SBANRFConnection(object):
     "An object of simple HTTP/2 connection"
 
@@ -60,7 +65,7 @@ class SBANRFConnection(object):
                 if self.fw_body != {}:
                     self.foward_request()
                 else:
-                    print('Fowarding Failed.')
+                    log('Fowarding Failed.')
 
             data_to_send = self.conn.data_to_send()
             if data_to_send:
@@ -69,7 +74,7 @@ class SBANRFConnection(object):
     def resource_providing(self):
         # Parsing Request Body
         body_json = json.loads(self.rx_body)
-        print(body_json)
+        log(body_json)
         self.rx_config = str(body_json['MODE']['NRF'])
         self.fw_body = {
             'RESULT': body_json['RESULT']
@@ -87,10 +92,10 @@ class SBANRFConnection(object):
         self.fw_body['MODE'] = confs
         self.fw_body['RESULT']['NRF'] = True  # Always gives True for testing
         self.lock.acquire()
-        print('Recieved Packet.\nMode: {}'.format(self.rx_config))
-        print('RX Header: {}'.format(self.rx_headers))
-        print('RX Body: {}'.format(body_json))
-        print('==========RX')
+        log('Recieved Packet.\nMode: {}'.format(self.rx_config))
+        log('RX Header: {}'.format(self.rx_headers))
+        log('RX Body: {}'.format(body_json))
+        log('==========RX')
         self.lock.release()
 
     def send_response(self):
@@ -131,7 +136,7 @@ class SBANRFConnection(object):
             'AF': '10.0.3.7:8080'
         }
         next_ent = self.fw_body['SBA_ENTITY'][0]
-        print('Fowarded packet to SBA Entity {} at http://{}'.format(next_ent,
+        log('Fowarded packet to SBA Entity {} at http://{}'.format(next_ent,
                                                                      fw_table[next_ent]))  # Next SBA Entity to foward to
         send_conn = HTTP20Connection(fw_table[next_ent])
         fw_body = json.dumps(self.fw_body).encode('utf-8')
@@ -140,16 +145,16 @@ class SBANRFConnection(object):
         resp = send_conn.get_response()
         if resp:
             self.lock.acquire()
-            print('Fowarded packet to SBA Entity {} at http://{}'.format(next_ent, fw_table[next_ent]))
+            log('Fowarded packet to SBA Entity {} at http://{}'.format(next_ent, fw_table[next_ent]))
             self.res_body = resp.read()
-            print('FW Header: {}'.format(dict(self.rx_headers)))
-            print('FW Body: {}'.format(fw_body))
-            print('Response: {}'.format(self.res_body))
-            print('==========FW')
+            log('FW Header: {}'.format(dict(self.rx_headers)))
+            log('FW Body: {}'.format(fw_body))
+            log('Response: {}'.format(self.res_body))
+            log('==========FW')
             self.lock.release()
 
 
-print('SBA Entity NRF server started at http://{}:{}'.format(
+log('SBA Entity NRF server started at http://{}:{}'.format(
     '0.0.0.0' if TEST_MODE else '10.0.3.1', LISTEN_PORT))
 
 sock = socket.socket()

@@ -14,6 +14,11 @@ HOST = 'localhost' if TEST_MODE else '10.0.5.1'
 LISTEN_PORT = 9003 if TEST_MODE else 8080
 
 
+def log(text):
+    with open("logs/DN.txt", "a") as f:
+        f.write(str(text) + "\n")
+
+
 class RecieverConnection(object):
     "An object of simple HTTP/2 connection"
 
@@ -37,14 +42,14 @@ class RecieverConnection(object):
 
             for event in events:
                 if isinstance(event, RequestReceived):
-                    print(dict(event.headers))
+                    log(dict(event.headers))
                     self.rx_headers = event.headers
                     self.stream_id = event.stream_id
                 elif isinstance(event, DataReceived):
-                    print(event.data)
+                    log(event.data)
 
             if self.rx_headers:
-                print('==========DN')
+                log('==========DN')
                 self.send_response()
 
             data_to_send = self.conn.data_to_send()
@@ -70,7 +75,7 @@ class RecieverConnection(object):
         )
 
 
-print('HTTP/2 server started at http://{}:{}'.format('localhost' if TEST_MODE else '10.0.5.1', LISTEN_PORT))
+log('HTTP/2 server started at http://{}:{}'.format('localhost' if TEST_MODE else '10.0.5.1', LISTEN_PORT))
 
 sock = socket.socket()
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

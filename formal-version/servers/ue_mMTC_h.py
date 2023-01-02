@@ -13,7 +13,8 @@ HOST = 'localhost' if TEST_MODE else '10.0.1.1'
 SEND_PORT = 9001 if TEST_MODE else 8080
 
 pkt_cnt = 1
-pkt_per_s = 450
+#pkt_per_s = 450
+pkt_per_s = 1
 expr_time = 1
 
 data = {

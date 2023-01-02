@@ -18,6 +18,11 @@ SEND_PORT = 9010 if TEST_MODE else 8080
 LOCK = threading.Lock()
 
 
+def log(text):
+    with open("logs/URLLC.txt", "a") as f:
+        f.write(str(text) + "\n")
+        
+
 class NFVURLLCConnection(object):
     "An object of simple HTTP/2 connection"
 
@@ -90,17 +95,17 @@ class NFVURLLCConnection(object):
         resp = send_conn.get_response()
         if resp:
             self.lock.acquire()
-            print('Fowarded packet to SBAES')
+            log('Fowarded packet to SBAES')
             self.res_body = resp.read()
-            print('FW Header: {}'.format(dict(self.rx_headers)))
-            print('FW Body: {}'.format(fw_body))
-            print('Response: {}'.format(self.res_body))
-            print('==========FW')
+            log('FW Header: {}'.format(dict(self.rx_headers)))
+            log('FW Body: {}'.format(fw_body))
+            log('Response: {}'.format(self.res_body))
+            log('==========FW')
             self.lock.release()
 
 
-print('NFV Service URLLC server started at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.2.1', LISTEN_PORT))
-print('Packet will foward to SBA Entity AMF at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.3.4', SEND_PORT))
+log('NFV Service URLLC server started at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.2.1', LISTEN_PORT))
+log('Packet will foward to SBA Entity AMF at http://{}:{}'.format('0.0.0.0' if TEST_MODE else '10.0.3.4', SEND_PORT))
 
 sock = socket.socket()
 sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
